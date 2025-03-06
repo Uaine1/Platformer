@@ -1,4 +1,5 @@
 from settings import *
+from timer import Timer
 
 class Sprite(pygame.sprite.Sprite):
     def __init__(self, pos, surf, groups):
@@ -19,6 +20,24 @@ class AnimatedSprite(Sprite):
         self.image = self.frames[int(self.frame_index) % len(self.frames)]
 
 
+class Bee(AnimatedSprite):
+    def __init__(self, frames, pos, groups):
+        super().__init__(frames, pos, groups)
+
+
+    def update(self, dt):
+        self.animate(dt)
+
+
+class Worm(AnimatedSprite):
+    def __init__(self, frames, pos, groups):
+        super().__init__(frames, pos, groups)
+
+
+    def update(self, dt):
+        self.animate(dt)
+
+
 class Player(AnimatedSprite):
     def __init__(self, pos, groups, collision_sprites, frames):
         super().__init__(frames, pos, groups)
@@ -32,12 +51,20 @@ class Player(AnimatedSprite):
         self.direction = pygame.Vector2()
         self.collision_sprites = collision_sprites
 
+        # Timer
+        self.shoot_timer = Timer(1500)
+
+
 
     def input(self):
         keys = pygame.key.get_pressed()
-        self.direction.x = int(keys[pygame.K_RIGHT] or keys[pygame.K_d]) - int(keys[pygame.K_LEFT] or keys[pygame.K_a])
+        self.direction.x = int(keys[pygame.K_RIGHT]) - int(keys[pygame.K_LEFT])
         if keys[pygame.K_SPACE] and self.on_floor:
             self.direction.y = -20
+
+        if keys[pygame.K_s] and not self.shoot_timer:
+            print("shoot")
+            self.shoot_timer.activate()
 
 
     def move(self, dt):
@@ -84,6 +111,7 @@ class Player(AnimatedSprite):
 
 
     def update(self, dt):
+        self.shoot_timer.update()
         self.check_floor()
         self.input()
         self.move(dt)
