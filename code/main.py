@@ -2,7 +2,7 @@ from settings import *
 from sprites import * 
 from support import *
 from groups import AllSprites
-from timer import Timer
+from timer import Timer # type: ignore
 
 class Game:
     def __init__(self):
@@ -15,6 +15,8 @@ class Game:
         # groups 
         self.all_sprites = AllSprites()
         self.collision_sprites = pygame.sprite.Group()
+        self.bullet_sprites = pygame.sprite.Group()
+        self.fire_sprites = pygame.sprite.Group()
         
         # Setup
         self.load_assets()
@@ -22,7 +24,13 @@ class Game:
 
         # Timer
         self.bee_timer = Timer(2000, func = self.create_bee, autostart = True, repeat = True)
-        
+
+
+    def create_bullet(self, pos, direction):
+        x = pos[0] + direction * 34 if direction == 1 else pos[0] + direction * 34 - self.bullet_surf.get_width()
+        Bullet(self.bullet_surf, (x, pos[1]), direction, (self.all_sprites, self.bullet_sprites) )
+        Fire(self.fire_surf, pos, self.all_sprites, self.player)
+
 
     def create_bee(self):
         Bee(self.bee_frames, (500,600), self.all_sprites)
@@ -52,7 +60,7 @@ class Game:
 
         for obj in map.get_layer_by_name("Entities"):
             if obj.name == "Player":
-                self.player = Player((obj.x, obj.y), self.all_sprites, self.collision_sprites, self.player_frames)
+                self.player = Player((obj.x, obj.y), self.all_sprites, self.collision_sprites, self.player_frames, self.create_bullet)
         
         
         Worm(self.worm_frames, (300, 400), self.all_sprites)
@@ -76,6 +84,7 @@ class Game:
             pygame.display.update()
         
         pygame.quit()
+
 
 if __name__ == '__main__':
     game = Game()
