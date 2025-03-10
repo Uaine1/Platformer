@@ -1,4 +1,6 @@
 from settings import *
+from math import sin
+from random import randint
 from timer import Timer # type: ignore
 
 class Sprite(pygame.sprite.Sprite):
@@ -63,22 +65,52 @@ class AnimatedSprite(Sprite):
         self.image = self.frames[int(self.frame_index) % len(self.frames)]
 
 
-class Bee(AnimatedSprite):
+class Enemy(AnimatedSprite):
     def __init__(self, frames, pos, groups):
         super().__init__(frames, pos, groups)
 
-
+    
     def update(self, dt):
+        self.move(dt)
         self.animate(dt)
+        self.constraint()
 
 
-class Worm(AnimatedSprite):
-    def __init__(self, frames, pos, groups):
+class Bee(Enemy):
+    def __init__(self, frames, pos, groups, speed):
         super().__init__(frames, pos, groups)
+        self.speed = speed
+        self.amplitude = randint(500,600)
+        self.frequency = randint(300,600)
 
 
-    def update(self, dt):
-        self.animate(dt)
+    def move(self, dt):
+        self.rect.x -= self.speed * dt
+        self.rect.y += sin(pygame.time.get_ticks() / self.frequency) * self.amplitude * dt
+
+
+    def constraint(self):
+        if self.rect.right <= 0:
+            self.kill()
+
+
+class Worm(Enemy):
+    def __init__(self, frames, rect, groups):
+        super().__init__(frames, rect.topleft, groups)
+        self.main_rect = rect
+        self.rect.bottomleft = rect.bottomleft
+        self.speed = randint(160, 200)
+        self.direction = 1
+        
+
+    def move(self, dt):
+        self.rect.x += self.direction * self.speed * dt
+        
+
+    def constraint(self):
+        if not self.main_rect.contains(self.rect):
+            self.direction *= -1
+            self.frames = [pygame.transform.flip(surf, True, False) for surf in self.frames]
 
 
 class Player(AnimatedSprite):

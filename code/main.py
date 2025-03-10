@@ -1,6 +1,7 @@
 from settings import * 
 from sprites import * 
 from support import *
+from random import randint
 from groups import AllSprites
 from timer import Timer # type: ignore
 
@@ -33,7 +34,10 @@ class Game:
 
 
     def create_bee(self):
-        Bee(self.bee_frames, (500,600), self.all_sprites)
+        Bee(frames = self.bee_frames, 
+            pos = ((self.level_width + WINDOW_WIDTH), (randint(0,self.level_height))), 
+            groups = self.all_sprites,
+            speed = randint(300,500))
 
 
     def load_assets(self):
@@ -51,6 +55,8 @@ class Game:
 
     def setup(self):
         map = load_pygame(join("data", "maps", "world.tmx"))
+        self.level_width = map.width * TILE_SIZE
+        self.level_height = map.height * TILE_SIZE
 
         for x, y, image in map.get_layer_by_name("Main").tiles():
             Sprite((x * TILE_SIZE, y * TILE_SIZE), image, (self.all_sprites, self.collision_sprites))
@@ -61,10 +67,10 @@ class Game:
         for obj in map.get_layer_by_name("Entities"):
             if obj.name == "Player":
                 self.player = Player((obj.x, obj.y), self.all_sprites, self.collision_sprites, self.player_frames, self.create_bullet)
-        
-        
-        Worm(self.worm_frames, (300, 400), self.all_sprites)
 
+            if obj.name == "Worm":
+                Worm(self.worm_frames, pygame.FRect(obj.x, obj.y, obj.width, obj.height), self.all_sprites)
+          
 
     def run(self):
         while self.running:
